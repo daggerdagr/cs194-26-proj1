@@ -39,7 +39,24 @@ def padCut(mat, x, y, constant):
 
     return finalMat
 
-def align(mat1, mat2):
+SSD = "ssd"
+NCC = "ncc"
+
+
+def fnSsd(mat1, mat2):
+    return np.sum((mat2 - mat1) ** 2) / mat1.size
+
+def fnNcc(mat1, mat2):
+    return -1 * np.dot(mat2 / np.linalg.norm(mat2), mat1 / np.linalg.norm(mat1))
+
+keywordToAlignFunction = {
+    SSD: fnSsd,
+    NCC: fnNcc
+}
+
+def align(keyword, mat1, mat2):
+
+    evaluatorTypes = {SSD, NCC}
 
     assert mat1.size == mat2.size
 
@@ -60,7 +77,11 @@ def align(mat1, mat2):
             matMask = vectShiftedMat1 != -1
             maskedVect1 = vectShiftedMat1[matMask]
 
-            result = np.sum((vectMat2[matMask] - maskedVect1) ** 2) / maskedVect1.size
+            # result = np.sum((vectMat2[matMask] - maskedVect1) ** 2) / maskedVect1.size
+
+            # result = -1 * np.dot(vectMat2[matMask] / np.linalg.norm(vectMat2[matMask]), maskedVect1 / np.linalg.norm(maskedVect1))
+
+            result = keywordToAlignFunction[keyword](vectMat2[matMask], maskedVect1)
 
             if curMin > result:
                 curMin = result

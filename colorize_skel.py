@@ -6,7 +6,7 @@
 import numpy as np
 import skimage as sk
 import skimage.io as skio
-from aligners import align
+from aligners import *
 from utils import *
 
 # name of the input file
@@ -38,8 +38,10 @@ r = trimAllSide(r, trimSize)
 g = trimAllSide(g, trimSize)
 b = trimAllSide(b, trimSize)
 
-ag = align(g, b)
-ar = align(r, b)
+alignMode = NCC
+
+ag = align(alignMode, g, b)
+ar = align(alignMode, r, b)
 
 # zg = np.full(g.shape, 0)
 # zr = np.full(r.shape, 0)
