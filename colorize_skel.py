@@ -10,7 +10,7 @@ from aligners import *
 from utils import *
 
 # name of the input file
-imname = 'cathedral.jpg'
+imname = 'train.tif'
 
 # read in the image
 im = skio.imread(imname)
@@ -38,7 +38,12 @@ r = trimAllSide(r, trimSize)
 g = trimAllSide(g, trimSize)
 b = trimAllSide(b, trimSize)
 
-alignMode = SSD
+## TRY OUT
+# r = rescale(r, 0.25)
+# g = rescale(g, 0.25)
+# b = rescale(b, 0.25)
+
+alignMode = NCC
 mode = PYR
 
 print("===== G TO B =====")
@@ -47,7 +52,7 @@ ag = alignMain(mode, alignMode, g, b)
 print("===== R TO B =====")
 ar = alignMain(mode, alignMode, r, b)
 
-# zg = np.full(g.shape, 0)
+zg = np.full(g.shape, 0)
 # zr = np.full(r.shape, 0)
 # zb = np.full(r.shape, 0)
 

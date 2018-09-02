@@ -2,7 +2,7 @@ import numpy as np
 from skimage.transform import rescale
 import skimage.io as skio
 
-DEBUG = True
+DEBUG = False
 
 def padCut(mat, x, y, constant):
     # assert mat.shape[0] > abs(x) and mat.shape[1] > abs(y)
@@ -105,7 +105,11 @@ def alignMain(mode, alignFnKey, mat1, mat2, level = 4):
     else:
         raise Exception("unrecognizable mode: " + mode)
     print(displX, displY)
-    return padCut(mat1, displX, displY, 0)
+    res = padCut(mat1, displX, displY, 0)
+    if DEBUG:
+        printMeOut(mat2, G)
+        printMeOut(res, R)
+    return res
 
 def helper(alignFnKey, mat1, mat2, level = 10):
     if level == 0 or mat1.shape[0] < MIN_SIZE or mat1.shape[1] < MIN_SIZE:
@@ -115,15 +119,17 @@ def helper(alignFnKey, mat1, mat2, level = 10):
         resizeMat2 = rescale(mat2, 0.5)
 
         result = helper(alignFnKey, resizeMat1, resizeMat2, level - 1)
+        result2 = (result[0] * 2, result[1] * 2)
 
 
         if DEBUG:
             print()
             print("++ RESULTS FOR", level, result, "++")
 
-            result2 = (result[0] * 2, result[1] * 2)
+            printMeOut(padCut(mat1, result[0], result[1], 0), R)
+            printMeOut(mat2, G)
+
             print("next step for ", result2)
-            print()
 
         return align(alignFnKey, mat1, mat2, result2, (-5, 5))
 
@@ -145,7 +151,7 @@ def align(alignFnKey, mat1, mat2, center = (0, 0), displRange = (-30, 30)):
         for displY in range(displRangeStart, displRangeEnd):
             newDisplX = displX + centerX
             newDisplY = displY + centerY
-            shiftedMat1 = padCut(mat1, newDisplX, newDisplY, -1)
+            shiftedMat1 = padCut(mat1, newDisplX, newDisplY, 0.5)
             vectShiftedMat1 = shiftedMat1.flatten()
             matMask = vectShiftedMat1 != -1
             maskedVect1 = vectShiftedMat1[matMask]
@@ -158,12 +164,13 @@ def align(alignFnKey, mat1, mat2, center = (0, 0), displRange = (-30, 30)):
                 print("Current coord:", (newDisplX, newDisplY))
 
             if curMin > result:
-                print("beat current min of", displacements, curMin)
+                if DEBUG:
+                    print("beat current min of", displacements, curMin)
                 curMin = result
                 displacements = (newDisplX, newDisplY)
 
                 # if DEBUG:
-                #     printMeOut(mat2, B, "mat2")
+                #     printMeOut(mat2, R, "mat2")
                 #     shiftedMat1_SUB = padCut(mat1, displX + centerX, displY + centerY, 0)
                 #     printMeOut(shiftedMat1_SUB, G, "possible mat1")
 
@@ -173,7 +180,7 @@ B = "blue"
 R = "red"
 G = "green"
 
-def printMeOut(mat1, mode, title):
+def printMeOut(mat1, mode, title = ""):
     empty = np.full(mat1.shape, 0)
     color_stack = [empty, empty, empty]
     if mode == R:
