@@ -38,10 +38,14 @@ r = trimAllSide(r, trimSize)
 g = trimAllSide(g, trimSize)
 b = trimAllSide(b, trimSize)
 
-alignMode = NCC
+alignMode = SSD
+mode = PYR
 
-ag = align(alignMode, g, b)
-ar = align(alignMode, r, b)
+print("===== G TO B =====")
+ag = alignMain(mode, alignMode, g, b)
+
+print("===== R TO B =====")
+ar = alignMain(mode, alignMode, r, b)
 
 # zg = np.full(g.shape, 0)
 # zr = np.full(r.shape, 0)
