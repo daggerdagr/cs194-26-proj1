@@ -109,7 +109,7 @@ def alignMain(mode, alignFnKey, mat1, mat2, level = 4):
     if DEBUG:
         printMeOut(mat2, G)
         printMeOut(res, R)
-    return res
+    return res, (displX, displY)
 
 def helper(alignFnKey, mat1, mat2, level = 10):
     if level == 0 or mat1.shape[0] < MIN_SIZE or mat1.shape[1] < MIN_SIZE:

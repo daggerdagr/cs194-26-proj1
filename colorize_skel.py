@@ -6,11 +6,12 @@
 import numpy as np
 import skimage as sk
 import skimage.io as skio
-from aligners import *
+from aligners import alignMain, SSD, PYR, NCC, NONP
 from utils import *
+import datetime
 
 # name of the input file
-imname = 'train.tif'
+imname = 'cathedral.jpg'
 
 # read in the image
 im = skio.imread(imname)
@@ -34,33 +35,38 @@ r = im[2*height: 3*height]
 ### ar = align(r, b)
 
 trimSize = 50
-r = trimAllSide(r, trimSize)
-g = trimAllSide(g, trimSize)
-b = trimAllSide(b, trimSize)
+trimR = trimAllSide(r, trimSize)
+trimG = trimAllSide(g, trimSize)
+trimB = trimAllSide(b, trimSize)
 
 ## TRY OUT
 # r = rescale(r, 0.25)
 # g = rescale(g, 0.25)
 # b = rescale(b, 0.25)
 
-alignMode = NCC
+alignMode = SSD
 mode = PYR
 
 print("===== G TO B =====")
-ag = alignMain(mode, alignMode, g, b)
+ag, agCoord = alignMain(mode, alignMode, trimG, trimB)
+agCoord = "-".join([str(x) for x in agCoord])
 
 print("===== R TO B =====")
-ar = alignMain(mode, alignMode, r, b)
+ar, arCoord = alignMain(mode, alignMode, trimR, trimB)
+arCoord = "-".join([str(x) for x in arCoord])
 
 zg = np.full(g.shape, 0)
 # zr = np.full(r.shape, 0)
 # zb = np.full(r.shape, 0)
 
 # create a color image
-im_out = np.dstack([ar, ag, b])
+im_out = np.dstack([ar, ag, trimB])
 
 # save the image
-fname = 'out_path/out_fname2.jpg'
+imname_no_format = imname.split(".")[0]
+currTime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
+fname = 'out_path/%s_%s_%s_%s_g%s_r%s.jpg' % (imname_no_format, currTime, alignMode, mode, agCoord, arCoord)
 skio.imsave(fname, im_out)
 
 # display the image
