@@ -12,10 +12,13 @@ import datetime
 from enum import Enum
 
 ### OPTIONS
-# print matched matrixes
-debugPrintMatch = False
 # name of the input file
 imname = 'emir.tif'
+
+class Debug(Enum):
+    SaveMatches = True
+    PrintMatches = True
+
 
 # read in the image
 im = skio.imread(imname)
@@ -56,10 +59,24 @@ mat2B = trimB
 ar, arCoord = alignMain(mode, alignMode, mat2A, mat2B)
 arCoord = ",".join([str(x) for x in arCoord])
 
-if debugPrintMatch:
-    printMeOut(ag, ColorMode.G)
-    printMeOut(ar, ColorMode.R)
-    printMeOut(trimB, ColorMode.B)
+# creating fileName
+imname_no_format = imname.split(".")[0]
+currTime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+fname = 'out_path/%s_%s_%s_%s_g%s_r%s_trim%d' % (imname_no_format, currTime, alignMode, mode, agCoord, arCoord, trimSize)
+fFormat = ".jpg"
+
+if Debug.PrintMatches:
+    if Debug.SaveMatches:
+        gName = fname + "_g" + fFormat
+        rName = fname + "_r" + fFormat
+        bName = fname + "_b" + fFormat
+    else:
+        gName = ""
+        rName = ""
+        bName = ""
+    printMeOut(ag, ColorMode.G, gName)
+    printMeOut(ar, ColorMode.R, rName)
+    printMeOut(trimB, ColorMode.B, bName)
 
 # zg = np.full(g.shape, 0)
 # zr = np.full(r.shape, 0)
@@ -69,11 +86,7 @@ if debugPrintMatch:
 im_out = np.dstack([ar, ag, trimB])
 
 # save the image
-imname_no_format = imname.split(".")[0]
-currTime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
-fname = 'out_path/%s_%s_%s_%s_g%s_r%s_trim%d.jpg' % (imname_no_format, currTime, alignMode, mode, agCoord, arCoord, trimSize)
-skio.imsave(fname, im_out)
+skio.imsave(fname + fFormat, im_out)
 
 # display the image
 skio.imshow(im_out)

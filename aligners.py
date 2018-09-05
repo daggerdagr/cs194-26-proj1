@@ -198,7 +198,7 @@ def printMeOut(mat1, mode, savePath = ""):
         raise Exception("unrecognizable print mode", mode)
 
     im_out = np.dstack(color_stack)
-    skio.imshow(im_out)
-    skio.show()
     if savePath != "":
         skio.imsave(savePath, im_out)
+    skio.imshow(im_out)
+    skio.show()
