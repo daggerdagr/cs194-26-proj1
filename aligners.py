@@ -1,11 +1,22 @@
 import numpy as np
 from skimage.transform import rescale
 import skimage.io as skio
+from enum import Enum
 
 DEBUG = False
+DEBUG2 = False
+
+# match mode
+class MatchMode(Enum):
+    SSD = "ssd"
+    NCC = "ncc"
+
+# search mode
+class SearchMode(Enum):
+    NONP = "non-pyramid"
+    PYR = "pyramid"
 
 def padCut(mat, x, y, constant):
-    # assert mat.shape[0] > abs(x) and mat.shape[1] > abs(y)
 
     finalMat = mat
     if abs(x) > mat.shape[1]:
@@ -55,14 +66,7 @@ def padCut(mat, x, y, constant):
 
     return finalMat
 
-SSD = "ssd"
-NCC = "ncc"
-
 MIN_SIZE = 100
-
-# search mode
-NONP = "non-pyramid"
-PYR = "pyramid"
 
 def fnSsd(mat1, mat2):
     return np.sum((mat2 - mat1) ** 2) / mat1.size
@@ -71,8 +75,8 @@ def fnNcc(mat1, mat2):
     return -1 * np.dot(mat2 / np.linalg.norm(mat2), mat1 / np.linalg.norm(mat1))
 
 keywordToAlignFunction = {
-    SSD: fnSsd,
-    NCC: fnNcc
+    MatchMode.SSD: fnSsd,
+    MatchMode.NCC: fnNcc
 }
 
 """
@@ -98,17 +102,17 @@ def FN(mat1, mat2, alignKeyWord):
 """
 
 def alignMain(mode, alignFnKey, mat1, mat2, level = 4):
-    if mode == NONP:
+    if mode == SearchMode.NONP:
         displX, displY = align(alignFnKey, mat1, mat2)
-    elif mode == PYR:
+    elif mode == SearchMode.PYR:
         displX, displY = helper(alignFnKey, mat1, mat2, level)
     else:
         raise Exception("unrecognizable mode: " + mode)
     print(displX, displY)
     res = padCut(mat1, displX, displY, 0)
     if DEBUG:
-        printMeOut(mat2, G)
-        printMeOut(res, R)
+        printMeOut(mat2, ColorMode.G)
+        printMeOut(res, ColorMode.R)
     return res, (displX, displY)
 
 def helper(alignFnKey, mat1, mat2, level = 10):
@@ -122,12 +126,12 @@ def helper(alignFnKey, mat1, mat2, level = 10):
         result2 = (result[0] * 2, result[1] * 2)
 
 
-        if DEBUG:
+        if DEBUG2:
             print()
             print("++ RESULTS FOR", level, result, "++")
 
-            printMeOut(padCut(mat1, result[0], result[1], 0), R)
-            printMeOut(mat2, G)
+            printMeOut(padCut(mat1, result[0], result[1], 0), ColorMode.R)
+            printMeOut(mat2, ColorMode.G)
 
             print("next step for ", result2)
 
@@ -176,18 +180,19 @@ def align(alignFnKey, mat1, mat2, center = (0, 0), displRange = (-30, 30)):
 
     return displacements
 
-B = "blue"
-R = "red"
-G = "green"
+class ColorMode(Enum):
+    B = "blue"
+    R = "red"
+    G = "green"
 
-def printMeOut(mat1, mode, title = ""):
+def printMeOut(mat1, mode, savePath = ""):
     empty = np.full(mat1.shape, 0)
     color_stack = [empty, empty, empty]
-    if mode == R:
+    if mode == ColorMode.R:
         color_stack[0] = mat1
-    elif mode == G:
+    elif mode == ColorMode.G:
         color_stack[1] = mat1
-    elif mode == B:
+    elif mode == ColorMode.B:
         color_stack[2] = mat1
     else:
         raise Exception("unrecognizable print mode", mode)
@@ -195,3 +200,5 @@ def printMeOut(mat1, mode, title = ""):
     im_out = np.dstack(color_stack)
     skio.imshow(im_out)
     skio.show()
+    if savePath != "":
+        skio.imsave(savePath, im_out)

@@ -6,12 +6,16 @@
 import numpy as np
 import skimage as sk
 import skimage.io as skio
-from aligners import alignMain, SSD, PYR, NCC, NONP
+from aligners import alignMain, SearchMode, MatchMode, printMeOut, ColorMode
 from utils import *
 import datetime
+from enum import Enum
 
+### OPTIONS
+# print matched matrixes
+debugPrintMatch = False
 # name of the input file
-imname = 'cathedral.jpg'
+imname = 'emir.tif'
 
 # read in the image
 im = skio.imread(imname)
@@ -31,31 +35,33 @@ r = im[2*height: 3*height]
 # functions that might be useful for aligning the images include:
 # np.roll, np.sum, sk.transform.rescale (for multiscale)
 
-### ag = align(g, b)
-### ar = align(r, b)
-
-trimSize = 50
+# trim
+trimSize = 400
 trimR = trimAllSide(r, trimSize)
 trimG = trimAllSide(g, trimSize)
 trimB = trimAllSide(b, trimSize)
 
-## TRY OUT
-# r = rescale(r, 0.25)
-# g = rescale(g, 0.25)
-# b = rescale(b, 0.25)
+alignMode = MatchMode.NCC
+mode = SearchMode.PYR
 
-alignMode = SSD
-mode = PYR
+print("===== 1ST MATCH =====")
+mat1A = trimG
+mat1B = trimB
+ag, agCoord = alignMain(mode, alignMode, mat1A, mat1B)
+agCoord = ",".join([str(x) for x in agCoord])
 
-print("===== G TO B =====")
-ag, agCoord = alignMain(mode, alignMode, trimG, trimB)
-agCoord = "-".join([str(x) for x in agCoord])
+print("===== 2ND MATCH =====")
+mat2A = trimR
+mat2B = trimB
+ar, arCoord = alignMain(mode, alignMode, mat2A, mat2B)
+arCoord = ",".join([str(x) for x in arCoord])
 
-print("===== R TO B =====")
-ar, arCoord = alignMain(mode, alignMode, trimR, trimB)
-arCoord = "-".join([str(x) for x in arCoord])
+if debugPrintMatch:
+    printMeOut(ag, ColorMode.G)
+    printMeOut(ar, ColorMode.R)
+    printMeOut(trimB, ColorMode.B)
 
-zg = np.full(g.shape, 0)
+# zg = np.full(g.shape, 0)
 # zr = np.full(r.shape, 0)
 # zb = np.full(r.shape, 0)
 
@@ -66,7 +72,7 @@ im_out = np.dstack([ar, ag, trimB])
 imname_no_format = imname.split(".")[0]
 currTime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-fname = 'out_path/%s_%s_%s_%s_g%s_r%s.jpg' % (imname_no_format, currTime, alignMode, mode, agCoord, arCoord)
+fname = 'out_path/%s_%s_%s_%s_g%s_r%s_trim%d.jpg' % (imname_no_format, currTime, alignMode, mode, agCoord, arCoord, trimSize)
 skio.imsave(fname, im_out)
 
 # display the image
