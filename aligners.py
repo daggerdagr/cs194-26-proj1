@@ -157,10 +157,10 @@ def align(alignFnKey, mat1, mat2, center = (0, 0), displRange = (-30, 30)):
             newDisplY = displY + centerY
             shiftedMat1 = padCut(mat1, newDisplX, newDisplY, 0.5)
             vectShiftedMat1 = shiftedMat1.flatten()
-            matMask = vectShiftedMat1 != -1
-            maskedVect1 = vectShiftedMat1[matMask]
+            # matMask = vectShiftedMat1 != -1
+            # maskedVect1 = vectShiftedMat1 # [matMask]
 
-            result = keywordToAlignFunction[alignFnKey](vectMat2[matMask], maskedVect1)
+            result = keywordToAlignFunction[alignFnKey](vectMat2, vectShiftedMat1)
 
             if DEBUG:
                 print()
